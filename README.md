@@ -1,6 +1,15 @@
 # covid_dashboard
 
 
+### Cheatsheets
+- [Base R cheatsheet] (https://github.com/rstudio/cheatsheets/blob/master/base-r.pdf)
+- [RStudio cheatsheet] (https://github.com/rstudio/cheatsheets/blob/master/rstudio-ide.pdf)
+- [dplyr - manipulate data frames] (https://raw.githubusercontent.com/rstudio/cheatsheets/master/data-transformation.pdf)
+- [tidyr – create tidy data] (https://raw.githubusercontent.com/rstudio/cheatsheets/master/data-import.pdf)
+- [ggplot2 - creating graphics] (https://raw.githubusercontent.com/rstudio/cheatsheets/master/data-visualization-2.1.pdf)
+
+
+
 ### Publish Shiny Web App
 - Create an account on https://www.shinyapps.io/
 - Click on Publish to Server icon
