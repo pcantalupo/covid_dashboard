@@ -8,14 +8,10 @@ setwd("/path/to/new/work/directory")  # use Projects in R Studio to set working 
 
 # Getting help
 ?mean
-
 help.search('normal distribution')
-
 help(package = 'stats')  # Packages tab in R studio
-
 str(iris)   # structure of R object
 ?str
-
 class(iris)
 
 
@@ -44,17 +40,14 @@ sort(x)
 rev(x)
 unique(x)
 
-a = c("cat", "dog", "zebra", "fish", "dog")  # char
-table(a)
+animals = c("cat", "dog", "zebra", "fish", "dog")  # char
+table(animals)
 
 
 ## selecting vector elements
 x[1]    # the 1st element
-
 x[-3]   # all but the 3rd
-
 x[x < 4]
-
 x[x %in% c(2,6)]   # get elements in the set 2, 6
 
 
@@ -94,6 +87,7 @@ min(x) 	# minimum
 max(x) # 	maximum
 
 
+
 # Strings
 grade = "A"
 score = 94.5
@@ -108,19 +102,46 @@ grep("^ap", fruits, value=TRUE)
 
 
 
-#Factors
+# Factors
+fruit <- c(rep("grapes",5), rep("apples", 3))
+summary(fruit) 
+fruit <- factor(fruit)
+str(fruit)
+summary(fruit) 
+plot(fruit)
 
-#TODO
+newfruit = factor(fruit, levels = c("grapes", "apples"))
+summary(newfruit) 
+plot(newfruit)
+
 
 
 # Matrix
+y<-matrix(1:20, nrow=5,ncol=4) # generates 5 x 4 numeric matrix
 
-# TODO
+# another example
+cells <- c(1,26,24,68)
+rnames <- c("R1", "R2")
+cnames <- c("C1", "C2")
+mymatrix <- matrix(cells, nrow=2, ncol=2, byrow=TRUE,
+                   dimnames=list(rnames, cnames))
+
+#Identify rows, columns or elements using subscripts.
+y[,4] # 4th column of matrix
+y[3,] # 3rd row of matrix
+y[2:4,1:3] # rows 2,3,4 of columns 1,2,3 
 
 
-# Lists
 
-# TODO
+# Lists - An ordered collection of objects (components). A list allows you to gather a variety of (possibly unrelated) objects under one name.
+# example of a list with 4 components - a string, a numeric vector, a matrix, and a scaler
+w <- list(name="Fred", mynumbers=1:10, mymatrix=y, age=5.3)
+
+#Identify elements of a list using the [[]] convention.
+w[2] # 2nd component of the list as a list
+w[[2]] # 2nd component of the list
+w[["mynumbers"]] # component named mynumbers in list
+
 
 
 
@@ -128,9 +149,9 @@ grep("^ap", fruits, value=TRUE)
 # Data frames - like a Spreadsheet
 df = data.frame(x = c(1:10), y = LETTERS[1:10])
 df
-View(df)
 head(df)
 dim(df); nrow(df); ncol(df)
+typeof(df)
 
 # subsetting
 df$x
@@ -149,8 +170,7 @@ write.csv(df, file = "mydata.csv")
 df2 = read.csv(file = "mydata.csv")# row.names = 1)  # careful, need row.names
 df2
 
-
-# Read and write data
+# another example
 read.table("textfile.txt")
 ?read.table
 df = read.delim("textfile.txt")
@@ -161,14 +181,17 @@ write.table(df, "textfile_write.txt", quote=FALSE, row.names = FALSE)
 
 
 
-
-
 # Statistics - Linear models (regression)
   # using a variable(s) to predict the value of another
 h = women$height   # base R dataset called 'women"
 w = women$weight
 plot(h, w)
 m = lm(w ~ h)
+
+par(mfrow=c(2,2)) # Change the panel layout to 2 x 2
+plot(m)
+par(mfrow=c(1,1)) # Change back to 1 x 1
+
 summary(m)
 abline(m)
 anova(m)
@@ -177,6 +200,3 @@ confint(m)
 residuals(m)
 
 
-# Distributsions
-
-# TODO
