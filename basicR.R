@@ -81,14 +81,47 @@ concat("foo", "bar")
 
 
 ## math functions
+x = rnorm(50)
+mean(x) 
+sd(x)   # standard deviation
+median(x) 	#median
+mad(x)
+quantile(x, .9)  # get the 90% percentile
+y <- quantile(x, c(.3,.84))
+range(x)  #	range
+sum(x) # 	sum
+min(x) 	# minimum
+max(x) # 	maximum
+
+
+# Strings
+grade = "A"
+score = 94.5
+paste("You got a score of ", score, " which is grade ", grade, sep="")
+paste0("You got a score of ", score, " which is grade ", grade)
+
+fruits <- c("apple", "oranges", "banana", "apricot")
+vegetables <- c("cabbage", "spinach", "tomatoes")
+
+grep("apple", fruits, value=TRUE)
+grep("^ap", fruits, value=TRUE)
+
+
+
+#Factors
+
+#TODO
+
+
+# Matrix
 
 # TODO
-
 
 
 # Lists
 
 # TODO
+
 
 
 
@@ -126,23 +159,6 @@ write.table(df, "textfile_write.txt")
 write.table(df, "textfile_write.txt", quote=FALSE, row.names = FALSE)
 
 
-# Strings
-grade = "A"
-score = 94.5
-paste("You got a score of ", score, " which is grade ", grade, sep="")
-paste0("You got a score of ", score, " which is grade ", grade)
-
-fruits <- c("apple", "oranges", "banana", "apricot")
-vegetables <- c("cabbage", "spinach", "tomatoes")
-
-grep("apple", fruits, value=TRUE)
-grep("^ap", fruits, value=TRUE)
-
-
-
-#Factors
-
-#TODO
 
 
 
