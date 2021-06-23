@@ -19,6 +19,7 @@
 
 # RStudio files
 .Rproj.user/
+covid_dashboard.Rproj
 
 # produced vignettes
 vignettes/*.html
