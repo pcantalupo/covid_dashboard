@@ -1,0 +1,16 @@
+---
+title: "Untitled"
+output: html_document
+params:
+  data: "Hawaii"
+---
+
+
+
+```{r fig.cap = "Boxplot of Petal Length" }
+boxplot(Petal.Length ~ Species, data = iris)
+```
+
+## This is a an inline code to calculate 2 + 2 = `r 2+2`
+
+
