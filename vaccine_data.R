@@ -1,4 +1,5 @@
 library(Hmisc)
+library(DT)     # datatable
 library(tidyverse)  # dplyr, tidyr, ggplot2 and more
 
 # https://github.com/owid/covid-19-data/tree/master/public/data
@@ -10,26 +11,40 @@ c = read_csv("https://raw.githubusercontent.com/owid/covid-19-data/master/public
 str(c)
 View(c)
 
+c = c %>% rename(Doses_Given = total_vaccinations,
+                 Fully_Vaccinated = people_fully_vaccinated,
+                 Perc_Fully_Vaccinated = people_fully_vaccinated_per_hundred)
 
-describe(c$people_fully_vaccinated_per_hundred)
+describe(c$Perc_Fully_Vaccinated)
 #c = c %>% mutate(people_fully_vaccinated_per_hundred = replace_na(people_fully_vaccinated_per_hundred, 0))
 
 top25 = c %>% group_by(location) %>% 
   slice(which.max(date)) %>%
-  select(location, people_fully_vaccinated_per_hundred) %>% ungroup() %>%
-  arrange(-people_fully_vaccinated_per_hundred) %>% slice(1:25)
+  select(location, Perc_Fully_Vaccinated) %>%
+  ungroup() %>%
+  arrange(-Perc_Fully_Vaccinated) %>% slice(1:25)
 
-top25 %>% ggplot(aes(x=location, y=people_fully_vaccinated_per_hundred)) +
+top25 %>% ggplot(aes(x=location, y=Perc_Fully_Vaccinated)) +
   geom_col() +
   coord_flip()
 
 factor(top25$location)
 
 top25 %>%
-  mutate(location = forcats::fct_reorder(location, people_fully_vaccinated_per_hundred)) %>%
-  ggplot(aes(x=location, y=people_fully_vaccinated_per_hundred)) +
+  mutate(location = forcats::fct_reorder(location, Perc_Fully_Vaccinated)) %>%
+  ggplot(aes(x=location, y=Perc_Fully_Vaccinated)) +
   geom_col() +
   coord_flip()
+
+
+unique(c$location)  # 229 locations
+
+vacc_by_loc = c %>% group_by(location) %>% 
+  slice(which.max(date)) %>%
+  select(location, Doses_Given, Fully_Vaccinated, Perc_Fully_Vaccinated)
+unique(vacc_by_loc$location) # expect 229 locations
+
+datatable(vacc_by_loc)
 
 
 
@@ -44,30 +59,58 @@ describe(s)
 s %>% count(location)  # why 65 "states"  # it is a state or federal entity
 s %>% count(location) %>% View()
 
+
+s = s %>% rename(Doses_Given = total_vaccinations,
+                 Vaccinated = people_vaccinated,
+                 Fully_Vaccinated = people_fully_vaccinated,
+                 Perc_Vaccinated = people_vaccinated_per_hundred,
+                 Perc_Fully_Vaccinated = people_fully_vaccinated_per_hundred)
+
+
+long_num_people = s %>%
+  select(date, location, Vaccinated, Fully_Vaccinated) %>%
+  pivot_longer(-c(date, location)) 
+
+long_perc_people = s %>%
+  select(date, location, Perc_Vaccinated, Perc_Fully_Vaccinated) %>%
+  pivot_longer(-c(date, location)) 
+
+
+
 ###########################
-# Number people vaccinated
 # All STATES
-s %>% select(date, location, people_vaccinated, people_fully_vaccinated) %>% pivot_longer(-c(date, location)) %>%
+
+# Number people vaccinated #####################
+
+# United states throws off y-axis
+long_num_people %>%
   ggplot(aes(x=date, y=value)) + geom_line(aes(color=name)) + scale_y_continuous(labels = scales::comma) + facet_wrap(~ location)
 
-s %>% filter(location != "United States") %>% select(date, location, people_vaccinated, people_fully_vaccinated) %>% pivot_longer(-c(date, location)) %>%
+# Remove US and change scales free-y
+long_num_people %>% filter(location != "United States") %>%
   ggplot(aes(x=date, y=value)) + geom_line(aes(color=name)) + scale_y_continuous(labels = scales::comma) + facet_wrap(~ location, scales="free_y") 
 
-s %>% filter(location != "United States") %>%
-  select(date, location, people_vaccinated_per_hundred, people_fully_vaccinated_per_hundred) %>%
-  pivot_longer(-c(date, location), names_to="variable") %>%
-  ggplot(aes(x=date, y=value)) + geom_line(aes(color=variable)) +
+
+# Perc people vaccinated #####################
+long_perc_people %>% filter(location != "United States") %>%
+  ggplot(aes(x=date, y=value)) + geom_line(aes(color=name)) +
   facet_wrap(~ location)
 
-# PENNSYLVANIA
-pa = s %>% filter(location == "Pennsylvania")
-tail(pa)
-pa %>% select(date, people_vaccinated_per_hundred, people_fully_vaccinated_per_hundred) %>%
-  pivot_longer(-date, names_to="variable") %>%
-  ggplot(aes(x=date, y=value)) + geom_line(aes(color=variable))
 
-pa %>% select(date, people_vaccinated, people_fully_vaccinated) %>% pivot_longer(-date, names_to="variable") %>%
-  ggplot(aes(x=date, y=value)) + geom_line(aes(color=variable)) + scale_y_continuous(labels = scales::comma)
+####################
+# PENNSYLVANIA
+#pa = s %>% filter(location == "Pennsylvania")
+#tail(pa)
+
+state = "Pennsylvania"
+
+# number
+long_num_people %>% filter(location == state) %>%
+  ggplot(aes(x=date, y=value)) + geom_line(aes(color=name)) + scale_y_continuous(labels = scales::comma)
+
+# perc
+long_perc_people %>% filter(location == state) %>%
+  ggplot(aes(x=date, y=value)) + geom_line(aes(color=name))
 
 
 
@@ -78,15 +121,16 @@ s %>% filter(location != "United States") %>%
   ggplot(aes(x=date, y=daily_vaccinations)) + geom_line() +
   facet_wrap(~ location, scales="free_y")
 
-pa %>% ggplot(aes(x=date, y=daily_vaccinations)) + geom_line()
+s %>% filter(location == state) %>% ggplot(aes(x=date, y=daily_vaccinations)) + geom_line()
 
 
 ###########################
 # Comparison of two states
-two = s %>% filter(location == "Pennsylvania" | location == "Tennessee")
-two %>% select(date, location, people_vaccinated_per_hundred, people_fully_vaccinated_per_hundred) %>%
-  pivot_longer(-c(date, location), names_to="variable") %>%
-  ggplot(aes(x=date, y=value)) + geom_line(aes(color=location, linetype=variable))
+s1 = "Pennsylvania"
+s2 = "Tennessee"
+two = long_perc_people %>% filter(location == s1 | location == s2)
+two %>%
+  ggplot(aes(x=date, y=value)) + geom_line(aes(color=location, linetype=name))
 
 
 
