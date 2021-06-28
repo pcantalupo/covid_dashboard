@@ -48,6 +48,7 @@ datatable(vacc_by_loc)
 
 
 
+
 ############################
 # STATE LEVEL
 s = read_csv("https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/vaccinations/us_state_vaccinations.csv")
@@ -102,7 +103,8 @@ long_perc_people %>% filter(location != "United States") %>%
 #pa = s %>% filter(location == "Pennsylvania")
 #tail(pa)
 
-state = "Pennsylvania"
+#state = "Pennsylvania"
+state = "United States"
 
 # number
 long_num_people %>% filter(location == state) %>%
@@ -111,6 +113,8 @@ long_num_people %>% filter(location == state) %>%
 # perc
 long_perc_people %>% filter(location == state) %>%
   ggplot(aes(x=date, y=value)) + geom_line(aes(color=name))
+
+
 
 
 
