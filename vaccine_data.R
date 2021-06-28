@@ -18,23 +18,36 @@ c = c %>% rename(Doses_Given = total_vaccinations,
 describe(c$Perc_Fully_Vaccinated)
 #c = c %>% mutate(people_fully_vaccinated_per_hundred = replace_na(people_fully_vaccinated_per_hundred, 0))
 
-top25 = c %>% group_by(location) %>% 
+# if you don't filter for !is.na, you will get many Locaionts with NA for Perc_Fully_Vaccinated. By doing the filter, you get the latest date with a value for PercFullyVaccinated
+pfv = c %>% filter(!is.na(Perc_Fully_Vaccinated)) %>% group_by(location) %>%
   slice(which.max(date)) %>%
   select(location, Perc_Fully_Vaccinated) %>%
   ungroup() %>%
-  arrange(-Perc_Fully_Vaccinated) %>% slice(1:25)
+  arrange(-Perc_Fully_Vaccinated)
+View(pfv)
 
-top25 %>% ggplot(aes(x=location, y=Perc_Fully_Vaccinated)) +
+num = 10
+
+top = pfv %>% slice(1:num)
+top %>% ggplot(aes(x=location, y=Perc_Fully_Vaccinated)) +
   geom_col() +
   coord_flip()
 
-factor(top25$location)
+factor(top$location)
 
-top25 %>%
-  mutate(location = forcats::fct_reorder(location, Perc_Fully_Vaccinated)) %>%
+top %>% mutate(location = forcats::fct_reorder(location, Perc_Fully_Vaccinated)) %>%
   ggplot(aes(x=location, y=Perc_Fully_Vaccinated)) +
   geom_col() +
   coord_flip()
+
+
+btmtop = pfv %>% filter(row_number() %in% 1:num | row_number() %in% (n()-(num-1)) : n() )
+btmtop %>% mutate(location = forcats::fct_reorder(location, Perc_Fully_Vaccinated)) %>%
+  ggplot(aes(x=location, y=Perc_Fully_Vaccinated)) +
+  geom_col() +
+  coord_flip()
+
+
 
 
 unique(c$location)  # 229 locations
