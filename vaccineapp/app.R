@@ -1,5 +1,5 @@
 library(tidyverse)
-#library(scales)
+library(scales)
 library(shiny)
 
 # STATE data ############################################
@@ -12,6 +12,8 @@ s = s %>% rename(Doses_Given = total_vaccinations,
 mindate = min(s$date)
 maxdate = max(s$date)
 
+states = unique(s$location )
+
 long_num_people = s %>%
     select(date, location, Vaccinated, Fully_Vaccinated) %>%
     pivot_longer(-c(date, location)) 
@@ -19,13 +21,6 @@ long_num_people = s %>%
 long_perc_people = s %>%
     select(date, location, Perc_Vaccinated, Perc_Fully_Vaccinated) %>%
     pivot_longer(-c(date, location)) 
-
-# loc_names = unique(s$location)
-# loc_values = str_replace_all(locations, " ", "_") %>% str_to_lower()
-# states = loc_values
-# names(states) = loc_names   # The "names" appear as selections in the drop down select inputs
-states = unique(s$location )
-
 
 
 
@@ -44,6 +39,7 @@ cpfv = c %>% filter(!is.na(Perc_Fully_Vaccinated)) %>%
 
 
 
+# Shiny components (ui and server) #######################
 ui <- navbarPage(title = "COVID Vaccine Dashboard",
                  tabPanel(title = "2 states",
                           sidebarLayout(
@@ -74,6 +70,7 @@ ui <- navbarPage(title = "COVID Vaccine Dashboard",
                               )
                           )
                  ),
+                 
                  tabPanel(title = "All states",
                     selectInput("states",
                                   label = "Select one or more states",
@@ -85,7 +82,7 @@ ui <- navbarPage(title = "COVID Vaccine Dashboard",
                  
                 
                  tabPanel(title = "Country",
-                    shiny::textInput("topbtmnum", label = "Enter number to show top and bottom Countries", value = 25),
+                    textInput("topbtmnum", label = "Enter number to show top and bottom Countries", value = 25),
                     plotOutput("country")
                  )
 )
@@ -105,7 +102,7 @@ server <- function(input, output) {
         toPlot = long_num_people %>% filter(date >= input$dates[1] & date <= input$dates[2])
         title = "Number of vaccinations in "
         if (input$togglestate == TRUE) {
-            toPlot = toPlot %>% filter(location == !!input$state1)
+            toPlot = toPlot %>% filter(location %in% input$state1)
             title = paste0(title, input$state1)
         } else {
             toPlot = toPlot %>% filter(location == "United States")
@@ -123,8 +120,10 @@ server <- function(input, output) {
     output$twostate = renderPlot({
         #print(input$state1)
         #print(input$state2)
-        two = long_perc_people %>% filter(location == !!input$state1 | location == !!input$state2)
-        two %>% filter(date >= input$dates[1] & date <= input$dates[2]) %>%
+        twostates = c(input$state1, input$state2)
+        two = long_perc_people %>% filter(date >= input$dates[1] & date <= input$dates[2]) %>%
+            filter(location %in% twostates)
+        two %>%
             ggplot(aes(x=date, y=value)) +
             geom_line(aes(color=location, linetype=name), size = 1) + 
             theme(text=element_text(size=18)) + 
@@ -158,7 +157,7 @@ server <- function(input, output) {
         num = as.integer(input$topbtmnum)
         print(num)
         btmtop = cpfv %>% filter(row_number() %in% 1:num | row_number() %in% (n()-(num-1)) : n() )
-        btmtop %>% mutate(location = forcats::fct_reorder(location, Perc_Fully_Vaccinated)) %>%
+        btmtop %>% mutate(location = fct_reorder(location, Perc_Fully_Vaccinated)) %>%
             ggplot(aes(x=location, y=Perc_Fully_Vaccinated)) +
             geom_col() +
             coord_flip() +
