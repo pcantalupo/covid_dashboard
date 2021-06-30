@@ -6,7 +6,7 @@ college <- college %>%
          control=as.factor(control), gender=as.factor(gender),
          loan_default_rate=as.numeric(loan_default_rate))
 
-# Let's try looking at tuition vs. institutional control
+# Let's try looking at tuition vs. control
 ggplot(data=college) +
   geom_point(mapping=aes(x=control, y=tuition))
 
@@ -17,3 +17,9 @@ ggplot(data=college) +
 # But an even better way is with a boxplot
 ggplot(data=college) +
   geom_boxplot(mapping=aes(x=control, y=tuition))
+
+# add jitter back
+ggplot(data=college, mapping=aes(x=control, y=tuition)) +
+  geom_boxplot() +
+  geom_jitter() 
+

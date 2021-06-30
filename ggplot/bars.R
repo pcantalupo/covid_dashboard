@@ -6,8 +6,7 @@ college <- college %>%
          control=as.factor(control), gender=as.factor(gender),
          loan_default_rate=as.numeric(loan_default_rate))
 
-# How many schools are in each region?
-# This calls for a bar graph!
+# How many schools are in each region? - use a bar graph
 ggplot(data=college) +
   geom_bar(mapping=aes(x=region))
 
@@ -15,12 +14,11 @@ ggplot(data=college) +
 ggplot(data=college) +
   geom_bar(mapping=aes(x=region, color=control))
 
-# Well, that's unsatisfying!  Try fill instead of color
+# Try fill instead of color
 ggplot(data=college) +
   geom_bar(mapping=aes(x=region, fill=control))
 
-# How about average tuition by region?
-# First, I'll use some dplyr to create the right tibble
+# How about average tuition by region? -> Use dplyr to create the right tibble
 college %>%
   group_by(region) %>%
   summarize(average_tuition=mean(tuition))
@@ -32,7 +30,7 @@ college %>%
   ggplot() +
   geom_bar(mapping=aes(x=region, y=average_tuition))
 
-# But I need to use a column graph instead of a bar graph to specify my own y
+# But I need to use a column graph instead of a bar graph to specify my own y variable
 college %>%
   group_by(region) %>%
   summarize(average_tuition=mean(tuition)) %>%
