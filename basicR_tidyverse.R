@@ -114,3 +114,9 @@ arrtime %>%
 
 
 
+# Forcats fct_reorder example
+iris$Species
+boxplot(Sepal.Width ~ Species, data = iris)
+boxplot(Sepal.Width ~ fct_reorder(Species, Sepal.Width), data = iris)
+
+
