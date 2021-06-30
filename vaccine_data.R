@@ -8,27 +8,40 @@ library(tidyverse)  # dplyr, tidyr, ggplot2 and more
 ############################
 # COUNTRY LEVEL
 c = read_csv("https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/vaccinations/vaccinations.csv")
-str(c)
 View(c)
 
 c = c %>% rename(Doses_Given = total_vaccinations,
                  Fully_Vaccinated = people_fully_vaccinated,
                  Perc_Fully_Vaccinated = people_fully_vaccinated_per_hundred)
 
-describe(c$Perc_Fully_Vaccinated)
-#c = c %>% mutate(people_fully_vaccinated_per_hundred = replace_na(people_fully_vaccinated_per_hundred, 0))
 
-# if you don't filter for !is.na, you will get many Locaionts with NA for Perc_Fully_Vaccinated. By doing the filter, you get the latest date with a value for PercFullyVaccinated
-pfv = c %>% filter(!is.na(Perc_Fully_Vaccinated)) %>% group_by(location) %>%
-  slice(which.max(date)) %>%
-  select(location, Perc_Fully_Vaccinated) %>%
+# DataTable to match Google 'Vaccinations by Location' (on Country level)
+unique(c$location)  # 229 locations
+
+vacc_by_loc = c %>% select(location, Doses_Given, Fully_Vaccinated, Perc_Fully_Vaccinated) %>%
+  group_by(location) %>% 
+  slice_max(date)
+unique(vacc_by_loc$location) # expect 229 locations
+
+datatable(vacc_by_loc)
+
+
+
+# Vaccine distribution inequity
+describe(c$Perc_Fully_Vaccinated)
+
+# if you don't filter for !is.na, you will get many Locations with NA for Perc_Fully_Vaccinated. By doing the filter, you get the latest date with a value for PercFullyVaccinated
+cpfv = c %>% select(date, location, Perc_Fully_Vaccinated) %>%
+  filter(!is.na(Perc_Fully_Vaccinated)) %>%
+  group_by(location) %>%
+  slice_max(date) %>%
   ungroup() %>%
   arrange(-Perc_Fully_Vaccinated)
-View(pfv)
+View(cpfv)
 
-num = 10
+num = 25   # want top 10 and bottom 10 countries by percent fully vaccinated
 
-top = pfv %>% slice(1:num)
+top = cpfv %>% slice(1:num)
 top %>% ggplot(aes(x=location, y=Perc_Fully_Vaccinated)) +
   geom_col() +
   coord_flip()
@@ -40,8 +53,7 @@ top %>% mutate(location = forcats::fct_reorder(location, Perc_Fully_Vaccinated))
   geom_col() +
   coord_flip()
 
-
-btmtop = pfv %>% filter(row_number() %in% 1:num | row_number() %in% (n()-(num-1)) : n() )
+btmtop = cpfv %>% filter(row_number() %in% 1:num | row_number() %in% (n()-num+1) : n() )
 btmtop %>% mutate(location = forcats::fct_reorder(location, Perc_Fully_Vaccinated)) %>%
   ggplot(aes(x=location, y=Perc_Fully_Vaccinated)) +
   geom_col() +
@@ -50,36 +62,21 @@ btmtop %>% mutate(location = forcats::fct_reorder(location, Perc_Fully_Vaccinate
 
 
 
-unique(c$location)  # 229 locations
-
-vacc_by_loc = c %>% group_by(location) %>% 
-  slice(which.max(date)) %>%
-  select(location, Doses_Given, Fully_Vaccinated, Perc_Fully_Vaccinated)
-unique(vacc_by_loc$location) # expect 229 locations
-
-datatable(vacc_by_loc)
-
-
-
 
 ############################
 # STATE LEVEL
 s = read_csv("https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/vaccinations/us_state_vaccinations.csv")
-str(s)
 View(s)
 describe(s)
-#d$date = as.Date(d$date, tryFormats = c("%Y-%m-%d"))
 
 s %>% count(location)  # why 65 "states"  # it is a state or federal entity
 s %>% count(location) %>% View()
-
 
 s = s %>% rename(Doses_Given = total_vaccinations,
                  Vaccinated = people_vaccinated,
                  Fully_Vaccinated = people_fully_vaccinated,
                  Perc_Vaccinated = people_vaccinated_per_hundred,
                  Perc_Fully_Vaccinated = people_fully_vaccinated_per_hundred)
-
 
 long_num_people = s %>%
   select(date, location, Vaccinated, Fully_Vaccinated) %>%
@@ -90,46 +87,53 @@ long_perc_people = s %>%
   pivot_longer(-c(date, location)) 
 
 
-
-###########################
-# All STATES
-
-# Number people vaccinated #####################
-
-# United states throws off y-axis
-long_num_people %>%
-  ggplot(aes(x=date, y=value)) + geom_line(aes(color=name)) + scale_y_continuous(labels = scales::comma) + facet_wrap(~ location)
-
-# Remove US and change scales free-y
-long_num_people %>% filter(location != "United States") %>%
-  ggplot(aes(x=date, y=value)) + geom_line(aes(color=name)) + scale_y_continuous(labels = scales::comma) + facet_wrap(~ location, scales="free_y") 
+# Comparison of two states
+s1 = "Pennsylvania"
+s2 = "South Carolina"
+two = long_perc_people %>% filter(location == s1 | location == s2)
+two %>%
+  ggplot(aes(x=date, y=value)) + geom_line(aes(color=location, linetype=name))
 
 
-# Perc people vaccinated #####################
-long_perc_people %>% filter(location != "United States") %>%
-  ggplot(aes(x=date, y=value)) + geom_line(aes(color=name)) +
-  facet_wrap(~ location)
+# One state plot (Number vacc'd and Percent vaccinated)
+state = "Pennsylvania" # state = "United States"
 
-
-####################
-# PENNSYLVANIA
-#pa = s %>% filter(location == "Pennsylvania")
-#tail(pa)
-
-#state = "Pennsylvania"
-state = "United States"
-
-# number
 long_num_people %>% filter(location == state) %>%
   ggplot(aes(x=date, y=value)) + geom_line(aes(color=name)) + scale_y_continuous(labels = scales::comma)
 
-# perc
 long_perc_people %>% filter(location == state) %>%
   ggplot(aes(x=date, y=value)) + geom_line(aes(color=name))
 
 
 
+# All states - number vaccinated 
 
+#   United states throws off y-axis
+long_num_people %>%
+  ggplot(aes(x=date, y=value)) + geom_line(aes(color=name)) +
+  scale_y_continuous(labels = scales::comma) + facet_wrap(~ location)
+
+#   Remove US and change scales free-y
+long_num_people %>% filter(location != "United States") %>%
+  ggplot(aes(x=date, y=value)) + geom_line(aes(color=name)) +
+  scale_y_continuous(labels = scales::comma) + facet_wrap(~ location, scales="free_y") 
+
+
+# All states - perc vaccinated
+long_perc_people %>% filter(location != "United States") %>%
+  ggplot(aes(x=date, y=value)) + geom_line(aes(color=name)) +
+  facet_wrap(~ location)
+
+
+
+
+
+
+
+
+
+
+# NOT USED
 
 ######################
 # Daily vaccinations
@@ -139,16 +143,6 @@ s %>% filter(location != "United States") %>%
   facet_wrap(~ location, scales="free_y")
 
 s %>% filter(location == state) %>% ggplot(aes(x=date, y=daily_vaccinations)) + geom_line()
-
-
-###########################
-# Comparison of two states
-s1 = "Pennsylvania"
-s2 = "Tennessee"
-two = long_perc_people %>% filter(location == s1 | location == s2)
-two %>%
-  ggplot(aes(x=date, y=value)) + geom_line(aes(color=location, linetype=name))
-
 
 
 
