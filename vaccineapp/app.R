@@ -87,11 +87,13 @@ ui <- navbarPage(title = "COVID Vaccine Dashboard",
                  ), # tabPanel end
                  
                 
-                 tabPanel(title = "Country",
-                    textInput("topbtmnum", label = "Enter number to show top and bottom Countries", value = 25),
-                    plotOutput("country"),
-                    
-                    tableOutput("datatable")
+                 tabPanel(title = "Country inequality",
+                    textInput("topbtmnum", label = "Number of top and bottom countries vaccination rates", value = 25),
+                    plotOutput("country")
+                 ),
+                 
+                 tabPanel(title = "Datatable",
+                    DT::dataTableOutput("datatable")
                  )
 )
 
@@ -174,9 +176,9 @@ server <- function(input, output) {
     }, width = 700, height = 700)
     
     
-    # output$datatable = renderDataTable({
-    #     datatable(vacc_by_loc)
-    # })
+    output$datatable = DT::renderDataTable({
+        datatable(vacc_by_loc)
+    })
     
 }
 

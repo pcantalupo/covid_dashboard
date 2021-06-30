@@ -45,3 +45,6 @@ docs/
 
 # translation temp files
 po/*~
+
+# rsconnect
+vaccineapp/rsconnect/*
