@@ -1,5 +1,6 @@
 library(tidyverse)
 library(scales)
+library(DT)
 library(shiny)
 
 # STATE data ############################################
@@ -37,6 +38,11 @@ cpfv = c %>% filter(!is.na(Perc_Fully_Vaccinated)) %>%
     ungroup() %>%
     arrange(-Perc_Fully_Vaccinated)
 
+
+vacc_by_loc = c %>% select(date, location, Doses_Given, Fully_Vaccinated, Perc_Fully_Vaccinated) %>%
+    group_by(location) %>% 
+    slice_max(date) %>%
+    select(-date)
 
 
 # Shiny components (ui and server) #######################
@@ -83,7 +89,9 @@ ui <- navbarPage(title = "COVID Vaccine Dashboard",
                 
                  tabPanel(title = "Country",
                     textInput("topbtmnum", label = "Enter number to show top and bottom Countries", value = 25),
-                    plotOutput("country")
+                    plotOutput("country"),
+                    
+                    tableOutput("datatable")
                  )
 )
 
@@ -163,8 +171,13 @@ server <- function(input, output) {
             coord_flip() +
             theme(text=element_text(size=18)) +
             labs(title="Vaccine inequality\nShowing highest and lowest rates of vaccination")
-        
     }, width = 700, height = 700)
+    
+    
+    # output$datatable = renderDataTable({
+    #     datatable(vacc_by_loc)
+    # })
+    
 }
 
 shinyApp(server = server, ui = ui)

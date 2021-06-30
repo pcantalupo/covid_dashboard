@@ -18,9 +18,10 @@ c = c %>% rename(Doses_Given = total_vaccinations,
 # DataTable to match Google 'Vaccinations by Location' (on Country level)
 unique(c$location)  # 229 locations
 
-vacc_by_loc = c %>% select(location, Doses_Given, Fully_Vaccinated, Perc_Fully_Vaccinated) %>%
+vacc_by_loc = c %>% select(date, location, Doses_Given, Fully_Vaccinated, Perc_Fully_Vaccinated) %>%
   group_by(location) %>% 
-  slice_max(date)
+  slice_max(date) %>%
+  select(-date)
 unique(vacc_by_loc$location) # expect 229 locations
 
 datatable(vacc_by_loc)
