@@ -34,8 +34,16 @@ ggplot(data=college) +
   geom_point(mapping=aes(x=tuition, y=sat_avg, color=control, size=undergrads))
 
 # Add some transparency so we can see through those points a bit using alpha value (default = 1)
+# and add commas to y-axis values
 ggplot(data=college) +
-  geom_point(mapping=aes(x=tuition, y=sat_avg, color=control, size=undergrads), alpha=1/2)
+  geom_point(mapping=aes(x=tuition, y=sat_avg, color=control, size=undergrads), alpha=1/2) + 
+  scale_y_continuous(labels = scales::comma)
+
+# Break control into its own facets
+ggplot(data=college) +
+  geom_point(mapping=aes(x=tuition, y=sat_avg, color=control, size=undergrads), alpha=1/2) + 
+  scale_y_continuous(labels = scales::comma) + 
+  facet_wrap(~ control)
 
 
 
