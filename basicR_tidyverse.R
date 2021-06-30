@@ -8,6 +8,12 @@ describe(iris$Sepal.Length)
 describe(iris)
 
 
+# Forcats fct_reorder example
+iris$Species
+boxplot(Sepal.Width ~ Species, data = iris)
+boxplot(Sepal.Width ~ fct_reorder(Species, Sepal.Width), data = iris)
+
+
 
 ## Tidyverse usage
 mtcars
@@ -97,6 +103,18 @@ f %>% group_by(carrier) %>% slice_max(date, with_ties=FALSE) %>% select(date, ca
 
 
 # Tidy data introduction - why needed?
+table4a %>% pivot_longer(-country, names_to='year', values_to ='cases')
+
+
+
+
+
+
+
+
+
+
+# NOT USED
 arrtime = f %>% group_by(date) %>%
   summarize(mean_arrtime = mean(arr_time, na.rm=T),
             mean_schedarrtime = mean(sched_arr_time, na.rm=T))
@@ -114,9 +132,6 @@ arrtime %>%
 
 
 
-# Forcats fct_reorder example
-iris$Species
-boxplot(Sepal.Width ~ Species, data = iris)
-boxplot(Sepal.Width ~ fct_reorder(Species, Sepal.Width), data = iris)
+
 
 

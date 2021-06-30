@@ -10,26 +10,28 @@ setwd("/path/to/new/work/directory")  # use Projects in R Studio to set working 
 ?mean
 help.search('normal distribution')
 help(package = 'stats')  # Packages tab in R studio
-str(iris)   # structure of R object
-?str
-class(iris)
-
-
-
-# Using Packages
-install.packages("cowsay")  # installs files to operating system
-library(cowsay)  # make it accessible to our current code
-cowsay::say()
-say("Hello Hillman Academy students!", by = "cow")
-
 
 library(datasets)   # one of the default base R packages
 help(package = datasets)
 
+
+# Explore 'iris' dataset
+str(iris)   # structure of R object
+?str
+class(iris)
 head(iris)    # Show the first six lines of iris data
+nrow(iris); ncol(iris); dim(iris)
 summary(iris) # Summary statistics for iris
 plot(iris)    # Scatterplot matrix for iris  # Spread, Correlation,
 hist(iris$Sepal.Width)   # Shape, Gaps, Outliers, Symmetry
+boxplot(Sepal.Width ~ Species, data = iris)
+
+
+
+# Installing packages
+install.packages("cowsay")  # installs files to operating system
+library(cowsay)  # make it accessible to our current code
+say("Hello Hillman Academy students!", by = "cow")
 
 
 
@@ -187,16 +189,17 @@ h = women$height   # base R dataset called 'women"
 w = women$weight
 plot(h, w)
 m = lm(w ~ h)
+abline(m)
 
 par(mfrow=c(2,2)) # Change the panel layout to 2 x 2
 plot(m)
 par(mfrow=c(1,1)) # Change back to 1 x 1
 
 summary(m)
-abline(m)
 anova(m)
 coef(m)
 confint(m)
 residuals(m)
+cor(h, w)
 
 
