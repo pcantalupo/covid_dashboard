@@ -35,7 +35,7 @@ ggplot(data=college, mapping=aes(x=tuition, y=sat_avg, color=control)) +
   geom_point(alpha=1/2)
 
 
-pub.lm = college %>% filter(control == "Public") %>% lm(sat_avg ~ tuition, .)
+fit = college %>% filter(control == "Public") %>% lm(sat_avg ~ tuition, .)
 priv.lm = college %>% filter(control == "Private") %>% lm(sat_avg ~ tuition, .)
 
 ggplot(data=college, mapping=aes(x=tuition, y=sat_avg, color=control)) +
