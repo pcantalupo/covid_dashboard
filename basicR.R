@@ -68,11 +68,10 @@ if (i > 3) {
 
 # Functions
 concat = function (a, b) {
-  c = paste(a, b)
-  return(c)
+  string = paste(a, b)
+  return(string)
 }
 concat("foo", "bar")
-
 
 
 ## math functions
@@ -81,10 +80,9 @@ mean(x)
 sd(x)   # standard deviation
 median(x) 	#median
 mad(x)
-quantile(x, .9)  # get the 90% percentile
-y <- quantile(x, c(.3,.84))
-range(x)  #	range
 sum(x) # 	sum
+quantile(x, .9)  # get the 90% percentile
+range(x)  #	range
 min(x) 	# minimum
 max(x) # 	maximum
 
@@ -97,11 +95,10 @@ paste("You got a score of ", score, " which is grade ", grade, sep="")
 paste0("You got a score of ", score, " which is grade ", grade)
 
 fruits <- c("apple", "oranges", "banana", "apricot")
-vegetables <- c("cabbage", "spinach", "tomatoes")
 
 grep("apple", fruits, value=TRUE)
-grep("^ap", fruits, value=TRUE)
-
+grep("^ap", fruits, value=TRUE)   # using a regular expression with ^
+?grep
 
 
 # Factors
@@ -112,7 +109,7 @@ str(fruit)
 summary(fruit) 
 plot(fruit)
 
-newfruit = factor(fruit, levels = c("grapes", "apples"))
+newfruit = factor(fruit, levels = c("grapes", "apples"))  # reordering levels
 summary(newfruit) 
 plot(newfruit)
 
@@ -120,13 +117,6 @@ plot(newfruit)
 
 # Matrix
 y<-matrix(1:20, nrow=5,ncol=4) # generates 5 x 4 numeric matrix
-
-# another example
-cells <- c(1,26,24,68)
-rnames <- c("R1", "R2")
-cnames <- c("C1", "C2")
-mymatrix <- matrix(cells, nrow=2, ncol=2, byrow=TRUE,
-                   dimnames=list(rnames, cnames))
 
 #Identify rows, columns or elements using subscripts.
 y[,4] # 4th column of matrix
@@ -147,7 +137,6 @@ w[["mynumbers"]] # component named mynumbers in list
 
 
 
-
 # Data frames - like a Spreadsheet
 df = data.frame(x = c(1:10), y = LETTERS[1:10])
 df
@@ -157,23 +146,23 @@ typeof(df)
 
 # subsetting
 df$x
-df[1,]
+df[1,]     #  [rows, columns]
 df[,"x"]
 df[2,2]
 
-df[['x']]
+df[['x']]  #  [[]] only deals with columns
 column = 'x'
 df[[column]]
 df[[2]]
 
 
 # Write/ Read files
-write.csv(df, file = "mydata.csv")
-df2 = read.csv(file = "mydata.csv")# row.names = 1)  # careful, need row.names
+write.csv(df, file = "mydata.csv")   # default is to output rownames
+df2 = read.csv(file = "mydata.csv")# row.names = 1)  # careful, need to specify row.names
 df2
 
 # another example
-read.table("textfile.txt")
+read.table("textfile.txt")   #why are column headers in Row #1
 ?read.table
 df = read.delim("textfile.txt")
 write.table(df, "textfile_write.txt")
@@ -188,7 +177,7 @@ write.table(df, "textfile_write.txt", quote=FALSE, row.names = FALSE)
 h = women$height   # base R dataset called 'women"
 w = women$weight
 plot(h, w)
-m = lm(w ~ h)
+m = lm(w ~ h)   # create linear model
 abline(m)
 
 par(mfrow=c(2,2)) # Change the panel layout to 2 x 2
