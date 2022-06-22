@@ -1,4 +1,0 @@
-name age
-Trevor 21
-Ashley 25
-Lauren 18
