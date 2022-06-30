@@ -16,39 +16,38 @@ boxplot(Sepal.Width ~ fct_reorder(Species, Sepal.Width), data = iris)
 
 
 ## Tidyverse usage
-mtcars
-
-## Add/Create columns
-# old way
-mtcars$mpg/mtcars$wt
-mtcars$mpg_wt = mtcars$mpg/mtcars$wt
-
-## Mutate - tidyverse way
-mtcars = mutate(mtcars, mpg_wt = mpg/wt)  # tidyverse way
-
-## Select columns
-mtcars %>% select(mpg, cyl)   # select_if(is.numeric)  is.character, etc...
-mtcars %>% select(-mpg)
-
-## Filtering
-mtcars[mtcars$mpg > 21, ]   # old way
-mtcars %>% filter(mpg > 21)   # >= <= 
-
-## Sorting
-mtcars %>% arrange(-mpg)
-
-## Rename columns
-mtcars %>% rename(miles_per_gallon = mpg)
-
-## Summarizing
-mtcars %>% summarize(median(mpg))
-
-
-
 
 ## FLIGHTS dataset
+?flights
 f = flights
 describe(f)
+
+## Add/Create columns - base R
+# let's add a speed column
+f$distance / f$air_time * 60   # miles per hour  # Notice NA values
+f$mph = f$distance/f$air_time * 60
+
+## Mutate - tidyverse way
+f = mutate(f, mph = distance/air_time * 60)
+
+## Select columns
+f %>% select(year, month, day, carrier, mph)
+f %>% select_if(is.character)  # is.numeric, and more
+f %>% select(-carrier, -tailnum)
+
+## Filtering
+f[which(f$mph > 300), ]         # base R   # Remember which()!
+f %>% filter(mph > 300)         # tidyverse doesn't need which()
+
+## Sorting
+f %>% arrange(-mph)
+
+## Rename columns
+f %>% rename(miles_per_hour = mph)
+
+## Summarizing
+f %>% summarize(median(distance))
+
 
 # There is no Date column so lets create it. HOW WOULD YOU DO THIS?
 f = f %>% mutate(date = paste0(month, "-", day, "-", year)) %>%
@@ -58,10 +57,6 @@ f = f %>% mutate(date = paste0(month, "-", day, "-", year)) %>%
 #library(help="lubridate")
 f = f %>% mutate(date = mdy(date))
 f
-
-# Lets add a speed column
-f = f %>% mutate(speed = distance / air_time * 60)
-
 
 # select all flights on January 1st with
 filter(flights, month == 1, day == 1)   # note: use == not =  (also !=)
@@ -98,11 +93,12 @@ f %>% group_by(date) %>%
 
 # What is the last date for each carrier?
 f %>% count(carrier)
-f %>% group_by(carrier) %>% slice_max(date) %>% select(date, carrier)  # ?slice_max
+f %>% group_by(carrier) %>% slice_max(date) %>% select(date, carrier, flight)  # ?slice_max
 f %>% group_by(carrier) %>% slice_max(date, with_ties=FALSE) %>% select(date, carrier)
 
 
 # Tidy data introduction - why needed?
+table4a
 table4a %>% pivot_longer(-country, names_to='year', values_to ='cases')
 
 

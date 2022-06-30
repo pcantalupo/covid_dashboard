@@ -18,6 +18,7 @@ help(package = datasets)
 # Explore 'iris' dataset
 str(iris)   # structure of R object
 ?str
+View(iris)
 class(iris)
 head(iris)    # Show the first six lines of iris data
 nrow(iris); ncol(iris); dim(iris)
@@ -49,8 +50,13 @@ table(animals)
 ## selecting vector elements
 x[1]    # the 1st element
 x[-3]   # all but the 3rd
-x[x < 4]
 x[x %in% c(2,6)]   # get elements in the set 2, 6
+x[x < 4]  # be careful with relational operators (see below)
+
+x[5] = NA # set 5th element to NA
+x[x < 4]  # whoa, NA is not less than 4
+?`<`      # does not just return TRUE or FALSE values (can be NA as well)
+x[which(x < 4)] # always wrap relational operators inside which()
 
 
 # Flow control
@@ -66,39 +72,20 @@ if (i > 3) {
 }
 
 
-# Functions
-concat = function (a, b) {
-  string = paste(a, b)
-  return(string)
-}
-concat("foo", "bar")
-
-
-## math functions
-x = rnorm(50)
-mean(x) 
-sd(x)   # standard deviation
-median(x) 	#median
-mad(x)
-sum(x) # 	sum
-quantile(x, .9)  # get the 90% percentile
-range(x)  #	range
-min(x) 	# minimum
-max(x) # 	maximum
-
-
-
 # Strings
 grade = "A"
 score = 94.5
 paste("You got a score of ", score, " which is grade ", grade, sep="")
 paste0("You got a score of ", score, " which is grade ", grade)
 
-fruits <- c("apple", "oranges", "banana", "apricot")
 
+
+# Pattern matching
+fruits <- c("apple", "oranges", "banana", "apricot")
 grep("apple", fruits, value=TRUE)
-grep("^ap", fruits, value=TRUE)   # using a regular expression with ^
-?grep
+grep("^ap", fruits, value=TRUE)   # ^ matches the beginning of the line
+?grep   # read more about regular expressions
+
 
 
 # Factors
@@ -136,48 +123,58 @@ w[["mynumbers"]] # component named mynumbers in list
 
 
 
-
 # Data frames - like a Spreadsheet
-df = data.frame(x = c(1:10), y = LETTERS[1:10])
+df = data.frame(numbers = c(1:10), letters = LETTERS[1:10])
 df
 head(df)
 dim(df); nrow(df); ncol(df)
 typeof(df)
 
 # subsetting
-df$x
+df$numbers
 df[1,]     #  [rows, columns]
-df[,"x"]
+df[,"numbers"]
 df[2,2]
 
-df[['x']]  #  [[]] only deals with columns
-column = 'x'
+df[['letters']]  #  [[]] only deals with columns
+column = 'letters'
 df[[column]]
 df[[2]]
 
 
 # Write/ Read files
-write.csv(df, file = "mydata.csv")   # default is to output rownames
-df2 = read.csv(file = "mydata.csv")# row.names = 1)  # careful, need to specify row.names
-df2
+write.csv(df, file = "assets/mydata.csv")   # default is to output rownames
+read.csv(file = "assets/mydata.csv")# row.names = 1)  # careful, need to specify row.names
 
 # another example
-read.table("textfile.txt")   #why are column headers in Row #1
+read.table("assets/people.txt")   #why are column headers in Row #1
 ?read.table
-df = read.delim("textfile.txt")
-write.table(df, "textfile_write.txt")
+people = read.table("assets/people.txt", header = TRUE)
+write.table(people, "assets/people_write.txt")
 ?write.table
-write.table(df, "textfile_write.txt", quote=FALSE, row.names = FALSE)
+write.table(df, "assets/people_write.txt", quote=FALSE, row.names = FALSE)
 
 
 
 
-# Statistics - Linear models (regression)
-  # using a variable(s) to predict the value of another
-h = women$height   # base R dataset called 'women"
-w = women$weight
-plot(h, w)
-m = lm(w ~ h)   # create linear model
+# Statistics 
+# Basic math functions
+n = rnorm(50)
+mean(n) 
+sd(n)   # standard deviation
+median(n) 	#median
+mad(n)
+sum(n) # 	sum
+quantile(n, .9)  # get the 90% percentile
+range(n)  #	range
+min(n) 	# minimum
+max(n) # 	maximum
+
+
+# Linear models (regression) - using a variable(s) to predict the value of another
+women   # base R dataset called 'women"
+plot(women)
+m = lm(weight ~ height, data=women)   # create linear model
 abline(m)
 
 par(mfrow=c(2,2)) # Change the panel layout to 2 x 2
@@ -189,6 +186,20 @@ anova(m)
 coef(m)
 confint(m)
 residuals(m)
-cor(h, w)
+cor(women)
+
+
+
+# Miscellaneous
+# Creating your own function
+concat = function (a, b) {
+  string = paste(a, b)
+  return(string)
+}
+concat("foo", "bar")
+
+
+
+sessionInfo()  # best practice to keep track of the package versions that were used
 
 
