@@ -1,6 +1,7 @@
-library(tidyverse)
-library(scales)
 library(DT)
+library(zoo)
+library(scales)
+library(tidyverse)
 library(shiny)
 
 # STATE data ############################################
@@ -9,40 +10,53 @@ s = s %>% rename(Doses_Given = total_vaccinations,
                  Vaccinated = people_vaccinated,
                  Fully_Vaccinated = people_fully_vaccinated,
                  Perc_Vaccinated = people_vaccinated_per_hundred,
-                 Perc_Fully_Vaccinated = people_fully_vaccinated_per_hundred)
+                 Perc_Fully_Vaccinated = people_fully_vaccinated_per_hundred,
+                 Boosted = total_boosters,
+                 Perc_Boosted = total_boosters_per_hundred)
 mindate = min(s$date)
 maxdate = max(s$date)
 
 states = unique(s$location )
 
 long_num_people = s %>%
-    select(date, location, Vaccinated, Fully_Vaccinated) %>%
-    pivot_longer(-c(date, location)) 
+    select(date, location, Vaccinated, Fully_Vaccinated, Boosted) %>%
+    group_by(location) %>% 
+    mutate(Vaccinated = na.approx(Vaccinated, na.rm=FALSE),
+           Fully_Vaccinated = na.approx(Fully_Vaccinated, na.rm=FALSE),
+           Boosted = na.approx(Boosted, na.rm = FALSE)) %>%
+    pivot_longer(-c(date, location), names_to="vaxType", values_to = "number") 
 
 long_perc_people = s %>%
-    select(date, location, Perc_Vaccinated, Perc_Fully_Vaccinated) %>%
-    pivot_longer(-c(date, location)) 
-
+    select(date, location, Perc_Vaccinated, Perc_Fully_Vaccinated, Perc_Boosted) %>%
+    group_by(location) %>% 
+    mutate(Perc_Vaccinated = na.approx(Perc_Vaccinated, na.rm=FALSE),
+           Perc_Fully_Vaccinated = na.approx(Perc_Fully_Vaccinated, na.rm=FALSE),
+           Perc_Boosted = na.approx(Perc_Boosted, na.rm = FALSE)) %>%
+    pivot_longer(-c(date, location), names_to = "vaxType", values_to = "percentage")
 
 
 # COUNTRY data ############################################
 c = read_csv("https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/vaccinations/vaccinations.csv")
 c = c %>% rename(Doses_Given = total_vaccinations,
                  Fully_Vaccinated = people_fully_vaccinated,
-                 Perc_Fully_Vaccinated = people_fully_vaccinated_per_hundred)
+                 Perc_Fully_Vaccinated = people_fully_vaccinated_per_hundred,
+                 Boosted = total_boosters,
+                 Perc_Boosted = total_boosters_per_hundred)
 
+# Country vaccine inequality
 cpfv = c %>% filter(!is.na(Perc_Fully_Vaccinated)) %>%
     group_by(location) %>%
     slice(which.max(date)) %>%
     select(location, Perc_Fully_Vaccinated) %>%
-    ungroup() %>%
-    arrange(-Perc_Fully_Vaccinated)
+    arrange(-Perc_Fully_Vaccinated) %>%
+    ungroup()
 
-
-vacc_by_loc = c %>% select(date, location, Doses_Given, Fully_Vaccinated, Perc_Fully_Vaccinated) %>%
+# Datatable
+vacc_by_loc = c %>% select(date, location, Doses_Given, Fully_Vaccinated, Perc_Fully_Vaccinated, Boosted, Perc_Boosted) %>%
     group_by(location) %>% 
     slice_max(date) %>%
-    select(-date)
+    select(-date) %>%
+    arrange(-Perc_Fully_Vaccinated)
 
 
 # Shiny components (ui and server) #######################
@@ -119,8 +133,8 @@ server <- function(input, output) {
             title = paste0(title, "United States")
         }
         toPlot %>%
-            ggplot(aes(x=date, y=value)) +
-            geom_line(aes(color=name), size = 2) +
+            ggplot(aes(x=date, y=number)) +
+            geom_line(aes(color=vaxType), size = 2) +
             scale_y_continuous(labels = scales::comma) +
             theme(text=element_text(size=18)) +
             labs(title=title)
@@ -132,13 +146,16 @@ server <- function(input, output) {
         #print(input$state2)
         twostates = c(input$state1, input$state2)
         two = long_perc_people %>% filter(date >= input$dates[1] & date <= input$dates[2]) %>%
-            filter(location %in% twostates)
+            filter(location %in% twostates) %>%
+            mutate(location = factor(location, levels=c(twostates)))
         two %>%
-            ggplot(aes(x=date, y=value)) +
-            geom_line(aes(color=location, linetype=name), size = 1) + 
+            ggplot(aes(x=date, y=percentage)) +
+            geom_line(aes(color=location), size = 1) + 
             theme(text=element_text(size=18)) + 
             labs(title = paste0("Comparison of ", input$state1, " and ", input$state2),
-                 y = "Percent")
+                 y = "percent") +
+            facet_wrap(~vaxType) +
+            theme(axis.text.x = element_text(angle = 90))
     })
     
     
@@ -154,15 +171,16 @@ server <- function(input, output) {
                  filter(location != "United States" & location %in% input$states)
         }
         toPlot %>%
-            ggplot(aes(x=date, y=value)) +
-            geom_line(aes(color=name)) +
+            ggplot(aes(x=date, y=percentage)) +
+            geom_line(aes(color=vaxType)) +
             facet_wrap(~ location) +
             theme(text=element_text(size=18)) + 
-            labs(title = paste0("Comparison of vaccinations across states"),
-                 y = "Percent")
+            labs(title = paste0("Comparison of vaccinations across states")) +
+            theme(axis.text.x = element_text(angle = 90))
     }, height = 900)
     
     
+    # Country vaccine inequality plot
     output$country = renderPlot({
         num = as.integer(input$topbtmnum)
         print(num)
@@ -173,9 +191,10 @@ server <- function(input, output) {
             coord_flip() +
             theme(text=element_text(size=18)) +
             labs(title="Vaccine inequality\nShowing highest and lowest rates of vaccination")
-    }, width = 700, height = 700)
+    }, width = 750, height = 750)
     
     
+    # Sortable datatable
     output$datatable = DT::renderDataTable({
         datatable(vacc_by_loc)
     })
