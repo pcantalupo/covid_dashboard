@@ -6,7 +6,7 @@ library(shiny)
 
 # STATE data ############################################
 s = read_csv("https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/vaccinations/us_state_vaccinations.csv")
-s = s %>% rename(Doses_Given = total_vaccinations,
+s = s |> rename(Doses_Given = total_vaccinations,
                  Vaccinated = people_vaccinated,
                  Fully_Vaccinated = people_fully_vaccinated,
                  Perc_Vaccinated = people_vaccinated_per_hundred,
@@ -18,45 +18,44 @@ maxdate = max(s$date)
 
 states = unique(s$location )
 
-long_num_people = s %>%
-    select(date, location, Vaccinated, Fully_Vaccinated, Boosted) %>%
-    group_by(location) %>% 
+long_num_people = s |>
+    select(date, location, Vaccinated, Fully_Vaccinated, Boosted) |>
+    group_by(location) |> 
     mutate(Vaccinated = na.approx(Vaccinated, na.rm=FALSE),
            Fully_Vaccinated = na.approx(Fully_Vaccinated, na.rm=FALSE),
-           Boosted = na.approx(Boosted, na.rm = FALSE)) %>%
+           Boosted = na.approx(Boosted, na.rm = FALSE)) |>
     pivot_longer(-c(date, location), names_to="vaxType", values_to = "number") 
 
-long_perc_people = s %>%
-    select(date, location, Perc_Vaccinated, Perc_Fully_Vaccinated, Perc_Boosted) %>%
-    group_by(location) %>% 
+long_perc_people = s |>
+    select(date, location, Perc_Vaccinated, Perc_Fully_Vaccinated, Perc_Boosted) |>
+    group_by(location) |> 
     mutate(Perc_Vaccinated = na.approx(Perc_Vaccinated, na.rm=FALSE),
            Perc_Fully_Vaccinated = na.approx(Perc_Fully_Vaccinated, na.rm=FALSE),
-           Perc_Boosted = na.approx(Perc_Boosted, na.rm = FALSE)) %>%
+           Perc_Boosted = na.approx(Perc_Boosted, na.rm = FALSE)) |>
     pivot_longer(-c(date, location), names_to = "vaxType", values_to = "percentage")
 
 
 # COUNTRY data ############################################
 c = read_csv("https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/vaccinations/vaccinations.csv")
-c = c %>% rename(Doses_Given = total_vaccinations,
+c = c |> rename(Doses_Given = total_vaccinations,
                  Fully_Vaccinated = people_fully_vaccinated,
                  Perc_Fully_Vaccinated = people_fully_vaccinated_per_hundred,
                  Boosted = total_boosters,
                  Perc_Boosted = total_boosters_per_hundred)
 
 # Country vaccine inequality
-cpfv = c %>% filter(!is.na(Perc_Fully_Vaccinated)) %>%
-    group_by(location) %>%
-    slice(which.max(date)) %>%
-    select(location, Perc_Fully_Vaccinated) %>%
-    arrange(-Perc_Fully_Vaccinated) %>%
+cpfv = c |> filter(!is.na(Perc_Fully_Vaccinated)) |>
+    group_by(location) |>
+    slice(which.max(date)) |>
+    select(location, Perc_Fully_Vaccinated) |>
+    arrange(-Perc_Fully_Vaccinated) |>
     ungroup()
 
 # Datatable
-vacc_by_loc = c %>% select(date, location, Doses_Given, Fully_Vaccinated, Perc_Fully_Vaccinated, Boosted, Perc_Boosted) %>%
-    group_by(location) %>% 
-    slice_max(date) %>%
-    select(-date) %>%
-    arrange(-Perc_Fully_Vaccinated)
+vacc_by_loc = c |> select(date, location, Doses_Given, Fully_Vaccinated, Perc_Fully_Vaccinated, Boosted, Perc_Boosted) |>
+    group_by(location) |> 
+    slice_max(date)
+#    select(-date) |>
 
 
 # Shiny components (ui and server) #######################
@@ -123,16 +122,16 @@ server <- function(input, output) {
     
     output$totalvacs = renderPlot({
         # print (input$state1)
-        toPlot = long_num_people %>% filter(date >= input$dates[1] & date <= input$dates[2])
+        toPlot = long_num_people |> filter(date >= input$dates[1] & date <= input$dates[2])
         title = "Number of vaccinations in "
         if (input$togglestate == TRUE) {
-            toPlot = toPlot %>% filter(location %in% input$state1)
+            toPlot = toPlot |> filter(location %in% input$state1)
             title = paste0(title, input$state1)
         } else {
-            toPlot = toPlot %>% filter(location == "United States")
+            toPlot = toPlot |> filter(location == "United States")
             title = paste0(title, "United States")
         }
-        toPlot %>%
+        toPlot |>
             ggplot(aes(x=date, y=number)) +
             geom_line(aes(color=vaxType), size = 2) +
             scale_y_continuous(labels = scales::comma) +
@@ -140,15 +139,14 @@ server <- function(input, output) {
             labs(title=title)
     })
     
-    # how to keep State1 the same color no matter State2?
     output$twostate = renderPlot({
         #print(input$state1)
         #print(input$state2)
         twostates = c(input$state1, input$state2)
-        two = long_perc_people %>% filter(date >= input$dates[1] & date <= input$dates[2]) %>%
-            filter(location %in% twostates) %>%
-            mutate(location = factor(location, levels=c(twostates)))
-        two %>%
+        two = long_perc_people |> filter(date >= input$dates[1] & date <= input$dates[2]) |>
+            filter(location %in% twostates) |>
+            mutate(location = factor(location, levels=c(twostates))) # keep State1 same color no matter State2
+        two |>
             ggplot(aes(x=date, y=percentage)) +
             geom_line(aes(color=location), size = 1) + 
             theme(text=element_text(size=18)) + 
@@ -164,13 +162,13 @@ server <- function(input, output) {
     output$allstates = renderPlot({
         print(input$states)
         if (is.null(input$states)) {
-            toPlot = long_perc_people %>% filter(location != "United States")
+            toPlot = long_perc_people |> filter(location != "United States")
 
         } else {
-            toPlot = long_perc_people %>%
+            toPlot = long_perc_people |>
                  filter(location != "United States" & location %in% input$states)
         }
-        toPlot %>%
+        toPlot |>
             ggplot(aes(x=date, y=percentage)) +
             geom_line(aes(color=vaxType)) +
             facet_wrap(~ location) +
@@ -183,9 +181,10 @@ server <- function(input, output) {
     # Country vaccine inequality plot
     output$country = renderPlot({
         num = as.integer(input$topbtmnum)
+        #if(is.na(num)) {num = 10} 
         print(num)
-        btmtop = cpfv %>% filter(row_number() %in% 1:num | row_number() %in% (n()-(num-1)) : n() )
-        btmtop %>% mutate(location = fct_reorder(location, Perc_Fully_Vaccinated)) %>%
+        btmtop = cpfv |> filter(row_number() %in% 1:num | row_number() %in% (n()-(num-1)) : n() )
+        btmtop |> mutate(location = fct_reorder(location, Perc_Fully_Vaccinated)) |>
             ggplot(aes(x=location, y=Perc_Fully_Vaccinated)) +
             geom_col() +
             coord_flip() +

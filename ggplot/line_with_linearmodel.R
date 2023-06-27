@@ -35,16 +35,24 @@ ggplot(data=college, mapping=aes(x=tuition, y=sat_avg, color=control)) +
   geom_point(alpha=1/2)
 
 
-fit = college %>% filter(control == "Public") %>% lm(sat_avg ~ tuition, .)
-priv.lm = college %>% filter(control == "Private") %>% lm(sat_avg ~ tuition, .)
+# Get linear model statistics.  Too much work, use ggpubr package instead
+pub.lm = college %>% filter(control == "Public") %>% lm(sat_avg ~ tuition, .)
+pri.lm = college %>% filter(control == "Private") %>% lm(sat_avg ~ tuition, .)
+
+statspub = paste("PUBLIC   Adj R2 = ",   signif(summary(pub.lm)$adj.r.squared, 3),
+                 "Intercept =", signif(pub.lm$coef[[1]], 3),
+                 " Slope =",    signif(pub.lm$coef[[2]], 3),
+                 " P =",        signif(summary(pub.lm)$coef[2,4], 3))
+statspri = paste("PRIVATE  Adj R2 = ",   signif(summary(pub.lm)$adj.r.squared, 3),
+                 "Intercept =", signif(pri.lm$coef[[1]], 3),
+                 " Slope =",    signif(pri.lm$coef[[2]], 3),
+                 " P =",        signif(summary(pri.lm)$coef[2,4], 3))
 
 ggplot(data=college, mapping=aes(x=tuition, y=sat_avg, color=control)) +
   geom_smooth(method = "lm") +
   geom_point(alpha=1/2) +
-  labs(title = paste("PUBLIC  Adj R2 = ",   signif(summary(fit)$adj.r.squared, 3),
-              "Intercept =", signif(fit$coef[[1]], 3),
-              " Slope =",    signif(fit$coef[[2]], 3),
-              " P =",        signif(summary(fit)$coef[2,4], 3)))
+  labs(title = paste(statspub, statspri, sep="\n"))
 
-# Use ggpubr package!
+
+sessionInfo()
 
